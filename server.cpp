@@ -10,9 +10,10 @@
 #define CLIENT_ID(name) in(logins,name)
 #define PLAYER_ID(name) in(curr_playrs_name, name)
 
-int create_game_pipe(std::string game_name){
+int create_game_pipe(std::string game_name)
+{
     int curr_playrs;
-    if (mkfifo(("game_%" + game_name).c_str(), 0777) == -1)
+    if (mkfifo(("game_%" + game_name).c_str(), 0777) == -1) // создали FIFO файл для взаимодействия процессов
     {
         if(errno != EEXIST){
             std::cout << "ERROR: game " << ("game_%" + game_name).c_str() << std::endl;
@@ -31,6 +32,7 @@ int create_game_pipe(std::string game_name){
     return game_input_fd;
 }
 
+// номер логина в списке
 int in(std::vector<std::string> logins, std::string str)
 {
     for (int i = 0; i < logins.size(); ++i)
@@ -41,9 +43,12 @@ int in(std::vector<std::string> logins, std::string str)
     return -1;
 }
 
-int create_main_pipe() {
-    if (mkfifo("main_input", 0777) == -1){
-        if(errno != EEXIST){
+int create_main_pipe() 
+{
+    if (mkfifo("main_input", 0777) == -1) // Создание именного канала
+    {
+        if(errno != EEXIST)
+        {
             std::cout << "ERROR: mkfifo main_input!" << std::endl;
             exit(1);
         }
@@ -60,10 +65,12 @@ int create_main_pipe() {
     return fd_recv;
 }
 
-int create_admin_pipe() {
+int create_admin_pipe() 
+{
 
     if (mkfifo("admin", 0777) == -1){
-        if(errno != EEXIST){
+        if(errno != EEXIST)
+        {
             std::cout << "ERROR: mkfifo admin!" << std::endl;
             exit(1);
         }
@@ -80,7 +87,8 @@ int create_admin_pipe() {
     return admin_fd;
 }
 
-int create_client_pipe(std::string rcvd_name) {
+int create_client_pipe(std::string rcvd_name) 
+{
     if (mkfifo(rcvd_name.c_str(), 0777) == -1)
     {
         if(errno != EEXIST){
@@ -100,7 +108,8 @@ int create_client_pipe(std::string rcvd_name) {
     return fd;
 }
 
-int hit_check(std::string game_word, std::string try_word, int *cows, int *bulls,std::vector<int>& bulls_cows_index) {
+int hit_check(std::string game_word, std::string try_word, int *cows, int *bulls,std::vector<int>& bulls_cows_index) 
+{
 
     std::cout << game_word << "!" << try_word << std::endl;
     if (try_word.size() != game_word.size()) return -1;
@@ -110,15 +119,19 @@ int hit_check(std::string game_word, std::string try_word, int *cows, int *bulls
     *cows = 0;
     *bulls = 0;
 
-    for(int i{0}; i < try_word.size(); ++i){
-        if(try_word[i] != game_word[i]){
+    for(int i = 0; i < try_word.size(); ++i)
+    {
+        if(try_word[i] != game_word[i])
+        {
 
-            if(game_word.find(try_word[i]) != std::string::npos){
+            if(game_word.find(try_word[i]) != std::string::npos)
+            {
                 *cows = *cows + 1;
                 bulls_cows_index[i] = 1;
             }
         }
-        else{
+        else
+        {
             *bulls = *bulls + 1;
             bulls_cows_index[i] = 2;
         }
@@ -188,7 +201,8 @@ void game_process(std::string game_name, std::string game_word)
                 {
                     game_respond = "Winner is " + rcvd_name + "\nAnswer is " + game_word;
                     send_message_to_client(curr_playrs_fd[i], game_respond.c_str());
-                    do{
+                    do
+                    {
                         game_respond = "Print: |leave|";
                         send_message_to_client(curr_playrs_fd[i], game_respond.c_str());
                         recieve_message_server(game_input_fd, &rcvd_name, &rcvd_command, &rcvd_data);
@@ -207,15 +221,15 @@ void game_process(std::string game_name, std::string game_word)
             else if (game_status == 0)
             {
                 std::string cows_symbols = " symbols: ";
-                for(int elem {0}; elem < bulls_cows_index.size(); ++elem){
-                    if(bulls_cows_index[elem] == 1)
-                        cows_symbols = cows_symbols + rcvd_data[elem] + " "; 
+                for(int elem = 0; elem < bulls_cows_index.size(); ++elem)
+                {
+                    if(bulls_cows_index[elem] == 1) cows_symbols = cows_symbols + rcvd_data[elem] + " "; 
                 }
 
                 std::string bulls_symbols = " symbols: ";
-                for(int elem {0}; elem < bulls_cows_index.size(); ++elem){
-                    if(bulls_cows_index[elem] == 2)
-                        bulls_symbols = bulls_symbols + rcvd_data[elem] + " "; 
+                for(int elem = 0; elem < bulls_cows_index.size(); ++elem)
+                {
+                    if(bulls_cows_index[elem] == 2) bulls_symbols = bulls_symbols + rcvd_data[elem] + " "; 
                 }
 
                 game_respond = "Cows: " + std::to_string(cows) + cows_symbols + "\nBulls: " + std::to_string(bulls) + bulls_symbols;
@@ -248,11 +262,9 @@ int main()
     
     std::vector<std::string> games_name;  // Имена игр
     
-    std::string game_name_table;
-    
-    std::string game_word_size;
+    std::string game_name_table; // Имя игры
 
-    std::string game_word;
+    std::string game_word; // Загаданное слово
     
     int fd_recv = create_main_pipe();
     int admin_fd = create_admin_pipe();
@@ -260,10 +272,10 @@ int main()
     std::string login;
     
     std::string rcvd_name;
-    std::string rcvd_command;
+    std::string rcvd_command; // Полученные в будущем данные
     std::string rcvd_data; 
 
-    auto iter_fd = client_pipe_fd.cbegin();
+    auto iter_fd = client_pipe_fd.cbegin(); // Смотреть можно, трогать нельзя
     auto iter_log = logins.cbegin();
     auto iter_game_thread = games_threads.cbegin();
     auto iter_game_name = games_name.cbegin();
@@ -313,7 +325,7 @@ int main()
             game_respond = "|=|=| Random lobby: " + game_respond_vector[rand() % game_respond_vector.size()];
             send_message_to_client(curr_playrs_fd_test[PLAYER_ID(rcvd_name)], game_respond.c_str());
         }
-         else if (rcvd_command == "finish")
+        else if (rcvd_command == "finish")
         {
             std::remove(("game_%" + rcvd_name).c_str());
             
