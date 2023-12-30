@@ -22,14 +22,16 @@ void func(int fd_respond, std::string login)
     }
 }
 
-void write_intro() {
+void write_intro() 
+{
     std::cout << "|=|=| The Game [Bulls & Cows] |=|=|" << std::endl;
     std::cout << std::endl;
     std::cout << "Please enter your login: ";
     std::cout.flush();
 }
 
-void write_menu(std::string login){
+void write_menu(std::string login)
+{
     std::cout << std::endl;
     std::cout << "|=|=|=|=|=| GAME MENU |=|=|=|=|=|" << std::endl;
 
@@ -48,10 +50,12 @@ void write_menu(std::string login){
     std::cout.flush();
 }
 
-int server_main_input_fd(){
+int server_main_input_fd() // Для общения через server pipe
+{
     int fd = open("main_input", O_RDWR);
     
-    if (fd == -1){
+    if (fd == -1)
+    {
         std::cout << "ERROR: main fifo wasn`t opened!" << std::endl;
         exit(1);
     }
@@ -175,7 +179,7 @@ int main()
         {
             data = "";
             send_message_to_server(client_main_out_fd,login,command,data);
-            thr_respond.detach();
+            thr_respond.detach(); // Отсоединение связанного потока
             return 0;
         }
     }
