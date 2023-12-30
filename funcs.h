@@ -6,12 +6,11 @@ void send_message_to_server(int fd, std::string curlogin, std::string command, s
 {
     std::string text = curlogin + "$" + command + "$" + data;
     int k = text.size();
-    write(fd, &k, sizeof(k));
-    char message[k];
-    for (int i = 0; i < k; ++i)
-        message[i] = text[i];
+    write(fd, &k, sizeof(k)); // размер отправляемого сообщения
 
-    write(fd, message, k);
+    char message[k];
+    for (int i = 0; i < k; ++i) message[i] = text[i];
+    write(fd, message, k); // куда что сколько
 }
 
 //отправить сообщение клиенту
@@ -20,9 +19,9 @@ void send_message_to_client(int fd, std::string message)
     std::string text = message;
     int k = text.size();
     write(fd, &k, sizeof(k));
+
     char message_c[k];
-    for (int i = 0; i < k; ++i)
-        message_c[i] = text[i];
+    for (int i = 0; i < k; ++i) message_c[i] = text[i];
     write(fd, message_c, k);
 }
 
@@ -30,7 +29,7 @@ void send_message_to_client(int fd, std::string message)
 std::string recieve_message_client(int fd)
 {
     int size;
-    read(fd, &size, sizeof(size));
+    read(fd, &size, sizeof(size)); // откуда куда сколько
 
     char message[size];
     read(fd, message, size);
@@ -64,8 +63,8 @@ std::string extract_command(std::string message)
 {
     std::string command;
     int i = 0;
-    while (message[i] != '$')
-        ++i;
+    while (message[i] != '$') ++i;
+
     ++i;
     while (message[i] != '$')
     {
@@ -80,11 +79,11 @@ std::string extract_data(std::string message)
 {
     std::string data;
     int i = 0;
-    while (message[i] != '$')
-        ++i;
+    while (message[i] != '$') ++i;
+    
     ++i;
-    while (message[i] != '$')
-        ++i;
+    while (message[i] != '$') ++i;
+    
     ++i;
     while (i < message.size())
     {
@@ -94,6 +93,7 @@ std::string extract_data(std::string message)
     return data;
 }
 
+// получить информацию из сообщения для сервера
 void recieve_message_server(int fd, std::string *rcvd_name, std::string *rcvd_command, std::string *rcvd_data)
 {
     int size;
@@ -103,14 +103,14 @@ void recieve_message_server(int fd, std::string *rcvd_name, std::string *rcvd_co
     read(fd, messagec, size);
 
     std::string recv;
-    for (int i = 0; i < size; ++i)
-        recv.push_back(messagec[i]);
+    for (int i = 0; i < size; ++i) recv.push_back(messagec[i]);
     
     *rcvd_name = extract_login(recv);
     *rcvd_command = extract_command(recv);
     *rcvd_data = extract_data(recv);
 }
 
+// Получить имя игры 
 void extract_game_data(std::string message, std::string *game_name)
 {
     int i = 0;
